@@ -2,7 +2,9 @@
 #include "fonctions.h"
 
 int **alloctabINT(int dim1, int dim2) {
-  //create a table with adjacent memory spaces
+  /********************************************
+   create a table with adjacent memory spaces
+  **********************************************/
   int **ptr;
 
   ptr = malloc(dim1*sizeof(int *));
@@ -22,7 +24,9 @@ int **alloctabINT(int dim1, int dim2) {
 }
 
 float **alloctabFLOAT(int dim1, int dim2) {
-  //create a table with adjacent memory spaces
+  /********************************************
+   create a table with adjacent memory spaces
+  **********************************************/
   float **ptr;
 
   ptr = malloc(dim1*sizeof(float *));
@@ -65,7 +69,6 @@ void createMeshFile(){
   printf("d: ");
   scanf("%lf",&d);
 
-
   dx=(b-a)/n2; //step on x
   dy=(d-c)/n1; //step on y
 
@@ -73,13 +76,13 @@ void createMeshFile(){
   char filename[20]="mesh.dat";
   fp = fopen (filename,"w");
   if (fp == NULL) {
-      fprintf (stderr,"Impossible d'ouvrir le fichier\n");
+      fprintf (stderr,"Cannot open the file\n");
   }
 
   fprintf(fp,"%d\n",n1*n2); //number of nodes
   //we write coordinates of each points in the file mesh.dat
-  for (y=c; y<=d; y+=dy){
-    for (x=a; x<=b; x+=dx){
+  for (y=c; y<d; y+=dy){
+    for (x=a; x<b; x+=dx){
       fprintf (fp,"%3.1lf %3.1lf\n",x,y);
     }
   }
@@ -89,16 +92,15 @@ void createMeshFile(){
   if (typel==1) {  //for squares
     nbaret=4;
     nbtel=(n1-1)*(n2-1); //number of squares
-    fprintf(fp,"%d %d %d %d\n",nbtel,typel,n1*n2,nbaret);
+    fprintf(fp,"%d %d %d %d\n",nbtel,typel,nbaret,nbaret);
   }
   else if (typel==2) { //for triangles
     nbaret=3;
     nbtel=(n1-1)*(n2-1)*2; //number of triangles
-    fprintf(fp,"%d %d %d %d\n",nbtel,typel,n1*n2,nbaret);
+    fprintf(fp,"%d %d %d %d\n",nbtel,typel,nbaret,nbaret);
   }
   else {
     printf("Please restart the program and choose (1) for squares or (2) for triangles...\n");
-    return 1;
   }
 
   int **nRefAr=alloctabINT(nbtel, nbaret);
@@ -114,9 +116,12 @@ void createMeshFile(){
     fprintf(fp,"\n");
   }
   fclose(fp);
+  printf("The file created is named mesh.dat...\n");
 }
 void etiqar(int typel, int n1, int n2, int nrefdom, const int *nrefcot, int nbtel, int nbaret, int **nRefAr) {
-  //fill nRefAr[][]
+  /******************************
+        Fill nRefAr table
+  ******************************/
   int i,j;
   for (i=0;i<nbtel;i++){ //the whole nRefAr is firstly initilized to domain 0 for convinience
     for (j=0;j<nbaret;j++){
@@ -153,10 +158,30 @@ void etiqar(int typel, int n1, int n2, int nrefdom, const int *nrefcot, int nbte
   }
 }
 
-int lecfima(char *ficmai, int *nutyge, int *nbtng, float ***pcoord, int *nbtel, int ***pngnel, int *nbneel, int *nbaret, int ***pnRefAr){
-  //read the mesh file previously created
+void lecfima(char *ficmai, int *nutyge, int *nbtng, float ***pcoord, int *nbtel, int ***pngnel, int *nbneel, int *nbaret, int ***pnRefAr){
+  /******************************************
+   Read an existing mesh file named mesh.dat
+  ******************************************/
+  int i,j;
   FILE *fp = NULL;
   fp = fopen (ficmai,"r");
+  if (fp == NULL) {
+      fprintf (stderr,"Cannot open the file\n");
+  }
   fscanf(fp,"%d",nbtng);
-
+  *pcoord=alloctabFLOAT(*nbtng,2);
+  for (i=0;i<*nbtng;i++){
+      fscanf(fp,"%f %f",&(*pcoord)[i][0],&(*pcoord)[i][1]);
+  }
+  fscanf(fp,"%d %d %d %d",nbtel,nutyge,nbneel,nbaret);
+  *pngnel=alloctabINT(*nbtel,*nbneel);
+  *pnRefAr=alloctabINT(*nbtel,*nbaret);
+  for (i=0;i<*nbtel;i++){
+    for (j=0;j<*nbneel;j++){
+      fscanf(fp,"%d",&(*pngnel)[i][j]);
+    }
+    for (j=0;j<*nbaret;j++){
+      fscanf(fp,"%d",&(*pnRefAr)[i][j]);
+    }
+  }
 }
